@@ -118,6 +118,9 @@ class OrderController extends Controller
         $amount = DB::table('order')->where($orderDetailWhere)->first();
         return view('index.carts.cartshow',['goodsInfo'=>$goodsInfo,'order_id'=>$order_id,'addressnum'=>$addressnum,'addressDefault'=>$addressDefault],['amount'=>$amount]);
     }
+    public $weixin_unifiedorder_url = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
+    public $notify_url = 'http://1809zhanghaowei.comcto.com/wstatus';
+    /**微信支付*/
     protected function ToXml()
     {
         if(!is_array($this->values)
@@ -137,9 +140,6 @@ class OrderController extends Controller
         $xml.="</xml>";
         return $xml;
     }
-    public $weixin_unifiedorder_url = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
-    public $notify_url = 'http://1809zhanghaowei.comcto.com/wstatus';
-    /**微信支付*/
     public function wpay(Request $request)
     {
         $order_id = $request->session()->get('order_id');
