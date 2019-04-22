@@ -25,7 +25,6 @@ Route::any('goodsCart','Index\IndexController@goodsCart');
 Route::any('listCart','Index\IndexController@listCart');
 Route::any('cartList','Index\OrderController@cartList');
 Route::any('cartshow','Index\OrderController@cartshow');
-Route::any('wpay','Index\OrderController@wpay');
 
 
 
