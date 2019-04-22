@@ -15,6 +15,25 @@ use GuzzleHttp\Client;
 
 class OrderController extends Controller
 {
+    public function accessToken()
+    {
+        //Cache::pull('access');exit;
+        $access = Cache('access');
+        if (empty($access)) {
+            $appid = "wx51db63563c238547";
+            $appkey = "35bdd2d4a7a832b6d20e4ed43017b66e";
+            $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=$appid&secret=$appkey";
+            $info = file_get_contents($url);
+            $arrInfo = json_decode($info, true);
+            $key = "access";
+            $access = $arrInfo['access_token'];
+            $time = $arrInfo['expires_in'];
+
+            cache([$key => $access], $time);
+        }
+
+        return $access;
+    }
     /**生成订单 */
     public function cartList(Request $request){
         $goods_id=$request->input('goods_id');
