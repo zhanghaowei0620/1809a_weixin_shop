@@ -62,7 +62,7 @@
                                     </span>
                                 </p>
                                 <ul class="Pro-bar-li">
-                                    <li class="P-bar01"><em>27</em>已参与</li>
+                                    <li class="P-bar01"><em>{{$data[0]->click_id}}</em>点击量</li>
                                     <li class="P-bar02"><em>30</em>总需人次</li>
                                     <li class="P-bar03"><em>3</em>剩余</li>
                                 </ul>
@@ -75,98 +75,8 @@
 
                 <button class="layui-btn layui-btn-danger" id="asdasdasd" goods_id="{{$data[0]->goods_id}}">加入购物车</button>
                 <!--揭晓倒计时-->
-                <div id="divLotteryTime" class="Countdown-con">
-                    <p class="declare">声明：所有商品及活动均与苹果公司（Apple Inc）无关。</p>
-                    <div class="state">
-                        <em></em>
-                        <span>我已阅读《潮购声明》</span>
-                    </div>
-                    <div class="guide">您还没有参与哦，试试吧！</div>
-                </div>
-                <div class="imgdetail">
-                    <div class="ann_btn">
-                        <a href="">图文详情<s class="fr"></s></a>
-                    </div>
-                </div>
-                <div class="listtab tabs clearfix">
-                    <a href="javascript:;" class="active">参与记录</a>
-                    <a href="javascript:;">历史获得者</a>
-                </div>
 
 
-
-                <div class="ann_btn partcon" id="tabs-container">
-                    <div class="swiper-wrapper">
-                        <div class="record-wrapp swiper-slide">
-                             <!--所有参与记录-->
-                            <div class="part-record">
-                                <div class="ann_list">
-                                    <div class="fl">
-                                        <img src="images/goods2.jpg" alt="">阿珍
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- 无内容时显示 -->
-                            <div class="nocontent" style="display: none">
-                                <div class="m_buylist m_get">
-                                    <ul id="ul_list">
-                                        <div class="noRecords colorbbb clearfix">
-                                            <s class="default"></s>您还没有参与记录哦~
-                                        </div>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!--历史获得者 -->
-                        <div class="history-winwrapp mb48 swiper-slide">
-                            <div class="history-win">
-                                <div class="win-list clearfix">
-                                    <div class="win-left fl">
-                                        <p class="chao">第2779潮购</p>
-                                        <img src="images/goods2.jpg" alt="">
-                                    </div>
-                                    <div class="win-right fl">
-                                        <p class="show-time">揭晓时间:2017-06-28 15:16:46:000</p>
-                                        <p class="winner">获得者：<i>穿越狂信者</i></p>
-                                        <p class="show-count">本潮购参与：1480人次</p>
-                                        <p class="show-code">幸运潮购码：10003664</p>
-                                    </div>
-                                </div>
-                                <div class="win-list clearfix">
-                                    <div class="win-left fl">
-                                        <p class="chao">第2779潮购</p>
-                                        <img src="images/goods2.jpg" alt="">
-                                    </div>
-                                    <div class="win-right fl">
-                                        <p class="show-time">揭晓时间: <i>2017-06-28 15:16:46:000</i></p>
-                                        <p class="winner">获得者：<i>穿越狂信者</i></p>
-                                        <p class="show-count">本潮购参与：<i>1480</i>人次</p>
-                                        <p class="show-code">幸运潮购码：<i>10003664</i></p>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- 无内容时显示 -->
-                            <div class="nocontent" style="display: none">
-                                <div class="m_buylist m_get">
-                                    <ul id="ul_list">
-                                        <div class="noRecords colorbbb clearfix">
-                                            <s class="default"></s>您还没有参与记录哦~
-                                        </div>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="pro_foot">
-                        <a href="" class="">第10364潮正在进行中<span class="dotting"></span></a>
-                        <a href="" class="shopping">立即参与</a>
-                        </a><span class="fr" id='zxczxczxc'><i><b num="1" id="bnm">{{$buy_number}}</b></i></span>
-                </div>
             </div>
         </div>
     </div>
@@ -273,3 +183,6 @@
         })
     })
 </script>
+
+
+

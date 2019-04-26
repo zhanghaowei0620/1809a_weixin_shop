@@ -10,6 +10,7 @@ use App\Models\Goods;
 use App\Models\Cart;
 use Illuminate\Support\Facades\Auth;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Redis;
 
 class IndexController extends Controller
 {
@@ -39,7 +40,7 @@ class IndexController extends Controller
         $goods_id=$request->input('goods_id');
         $user_id=Auth::id();
         // print_r($goods_id);exit;
-        $data = DB::table('goods')->where('goods_id',$goods_id)->get(['goods_id','goods_name','goods_img','goods_selfprice'])->toArray();
+        $data = DB::table('goods')->where('goods_id',$goods_id)->get(['goods_id','goods_name','goods_img','goods_selfprice','click_id'])->toArray();
         $cartInfo= DB::table('cart')->where('user_id',$user_id)->get()->toArray();
         $buy_num=array_column($cartInfo,'buy_number');
         $buy_number=array_sum($buy_num);
@@ -50,23 +51,46 @@ class IndexController extends Controller
         $time = time();
 
 
-        $objredis = new \Redis();
-        $objredis->connect('127.0.0.1',6379);
+        $redis_view_key = 'count:view:goods_id:'.$goods_id;   //浏览量
+        $redis_ss_view = 'ss:goods:view';      //浏览排名
+        $id = Redis::incr($redis_view_key);
+        //var_dump($id);exit;
+        Redis::zAdd($redis_ss_view,$id,$goods_id);
 
-        $id = $objredis->incr('id');
+        $arr = [
+            'click_id'=>$id
+        ];
+        DB::table('goods')->where('goods_id',$goods_id)->update($arr);
+        //print_r($data);exit;
 
-        $hash_key = "list_".$id;
-        $objredis->hset($hash_key,'id',$id);
-        $objredis->hset($hash_key,'user_id',$user_id);
-        $objredis->hset($hash_key,'goods_id',$goods_id);
-        //$objredis->hset($hash_key,'openid',$openid);
-        $objredis->hset($hash_key,'createtime',$time);
-
-        $list_key = "list_hahaha";
-        $objredis->rpush($list_key,$hash_key);
-
-
-
+        //浏览历史
+        $where = [
+            'goods_id'=>$goods_id,
+            'user_id'=>$user_id
+        ];
+        $historyInfo = DB::table('goods_history')->where($where)->first();
+        $goods_name = $data[0]->goods_name;
+        $goods_img = $data[0]->goods_img;
+        $goods_selfprice = $data[0]->goods_selfprice;
+        $time = time();
+        //var_dump($historyInfo);exit;
+        if($historyInfo == NULL){
+            $historyarr = [
+                'goods_id'=>$goods_id,
+                'user_id'=>$user_id,
+                'goods_name'=>$goods_name,
+                'goods_img'=>$goods_img,
+                'goods_selfprice'=>$goods_selfprice,
+                'create_time'=>$time
+            ];
+            DB::table('goods_history')->insert($historyarr);
+        }else{
+            $historyarr = [
+                'create_time'=>$time,
+                'update_time'=>$time
+            ];
+            DB::table('goods_history')->where('goods_id',$goods_id)->update($historyarr);
+        }
         return view('index.goods.goodslist',['data'=>$data],['buy_number'=>$buy_number]);
     }
     /**加入购物车*/
@@ -147,4 +171,34 @@ class IndexController extends Controller
         // print_r($cartnum);exit;
         return view('index.goods.goodscart',['info'=>$cartInfo,'cartnum'=>$cartnum],['infodata'=>$infodata]);
     }
+    /**获取浏览量排名*/
+    public function goodssort(){
+        $user_id=Auth::id();
+        $key = "ss:goods:view";
+        $list = Redis::zRevRange($key,0,10000,true);
+        $dataInfo = [];
+        foreach ($list as $k=>$v) {
+            $dataInfo[] = $k;
+        }
+        //print_r($dataInfo);exit;
+        $goodsHotInfo=DB::table('goods')->whereIn('goods_id',$dataInfo)->orderBy('click_id','desc')->get(['goods_id','goods_name','goods_img','goods_selfprice','goods_salenum']);
+
+        $goodshistory = DB::table('goods_history')->whereIn('goods_id',$dataInfo)->orderBy('create_time','desc')->get(['goods_id','goods_name','goods_img','goods_selfprice','create_time']);
+        //print_r($goodshistory);exit;
+        return view('index.goods.goodssort',['info'=>$goodsHotInfo,'goodshistory'=>$goodshistory]);
+
+    }
+
+
+    /**
+
+    @foreach($historyarrInfo as $v)
+    <div class="win-right fl">
+    <p class="show-time">时间<?php echo date('Y-m-d H:i:s',$v['create_time'])?></p>
+    <p class="show-code">商品id:{{$v['goods_id']}}</p>
+    <p class="winner">商品名称{{$v['goods_name']}}</p>
+    商品图片:<img src="{{URL::asset('goodsimg/'.$v['goods_img'])}}" alt="">
+    <p class="show-count">价格:{{$v['goods_selfprice']}}</p>
+    </div>
+    @endforeach*/
 }
