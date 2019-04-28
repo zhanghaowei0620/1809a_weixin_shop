@@ -48,4 +48,11 @@ Route::any('wechat','Weixin\WeixinController@wechat');
 Route::any('wechatToken','Weixin\WeixinController@wechatToken');
 
 
+Route::get('getaccessToken','Weixin\DitchController@accessToken');
+Route::get('codeAdd','Weixin\DitchController@codeAdd');
+
+
+
+
+
 

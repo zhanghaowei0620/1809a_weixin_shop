@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Uri;
 use Illuminate\Support\Str;
@@ -103,7 +104,7 @@ class WeixinController extends Controller
     public function xmladd(Request $request)
     {
         $client = new Client();
-        //echo $request->input('echostr');
+        echo $request->input('echostr');
         $str = file_get_contents("php://input");
         $objxml = simplexml_load_string($str);
         //var_dump($objxml);
@@ -126,18 +127,20 @@ class WeixinController extends Controller
         $sex = $userInfo['sex'];
         $headimgurl = $userInfo['headimgurl'];
         $openid1 = $userInfo['openid'];
+        $EventKey = $objxml->EventKey;
         if ($Event == 'subscribe') {
-            $data = DB::table('kaoshi')->where('openid', $FromUserName)->count();
+            $data = DB::table('tmp_wx_users')->where('openid', $openid1)->count();
             //print_r($data);die;
             if ($data == '0') {
                 $weiInfo = [
-                    'name' => $name,
-                    'sex' => $sex,
-                    'img' => $headimgurl,
+                    'user_name' => $name,
+                    'user_sex' => $sex,
+                    'headimgurl' => $headimgurl,
                     'openid' => $openid1,
-                    'time' => time()
+                    'ditch' => $EventKey,
+                    'create_time' => time()
                 ];
-                DB::table('kaoshi')->insert($weiInfo);
+                DB::table('tmp_wx_users')->insert($weiInfo);
 
                 //回复消息
                 $time = time();
@@ -166,7 +169,56 @@ class WeixinController extends Controller
                 echo $xmlStr;
             }
 
+        }else if($Event == 'SCAN'){
+            $openid = $objxml->FromUserName;
+            $EventKey = $objxml->EventKey;
+            $ticket = $objxml->Ticket;
+            $ToUserName = "gh_cf7ceceb3c6e";
+            $MsgType = 'news';
+            $where = [
+                'ditch'=>$EventKey,
+                'openid'=>$openid
+            ];
+            $data = DB::table('tmp_wx_users')->where($where)->count();
+            if($data){
+                $time = time();
+                $ArticleCount = 1;
+                $Titkle = "扫码";
+                $Description = "欢迎回来";
+                $PicUrl = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=$ticket";
+                $Url = "https://1809zhanghaowei.comcto.com/jsdemo";
+                $response_xml = "
+                <xml>
+                     <ToUserName><![CDATA[$openid]]></ToUserName>
+                     <FromUserName><![CDATA[$ToUserName]]></FromUserName>
+                     <CreateTime>$time</CreateTime>
+                     <MsgType><![CDATA[$MsgType]]></MsgType>
+                     <ArticleCount>$ArticleCount</ArticleCount>
+                     <Articles>
+                          <item>
+                               <Title><![CDATA[$Titkle]]></Title>
+                               <Description><![CDATA[$Description]]></Description>
+                               <PicUrl><![CDATA[$PicUrl]]></PicUrl>
+                               <Url><![CDATA[$Url]]></Url>
+                          </item>
+                     </Articles>
+                </xml>
+                ";
+                echo $response_xml;
+            }else{
+                $dataInfo = [
+                    'user_name' => $name,
+                    'user_sex' => $sex,
+                    'headimgurl' => $headimgurl,
+                    'openid' => $openid,
+                    'ditch' => $EventKey,
+                    'create_time' => time()
+                ];
+
+                DB::table('tmp_wx_users')->insert($dataInfo);
+            }
         }
+
 
 
 
@@ -257,6 +309,79 @@ class WeixinController extends Controller
                 $imginfo = DB::table('voice')->insert($dataInfo);
             }
         }
+    }
+    /**
+     * 获取jsapi ticket
+     */
+    public function getJsapiTicket()
+    {
+        $key = 'wx_jsapi_ticket';
+        $ticket = Redis::get($key);
+        if($ticket){
+            return $ticket;
+        }else{
+            $access_token = $this->accessToken();
+            $url = 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token='.$access_token.'&type=jsapi';
+            $ticket_info = json_decode(file_get_contents($url),true);
+            if(isset($ticket_info['ticket'])){
+                Redis::set($key,$ticket_info['ticket']);
+                Redis::expire($key,3600);
+                return $ticket_info['ticket'];
+            }else{
+                return false;
+            }
+        }
+    }
+    /**分享*/
+    public function jsdemo(){
+        $access = $this->accessToken();
+        $ticket = $this->getJsapiTicket();
+        //var_dump($ticket);exit;
+        $nonceStr = Str::random(10);
+        $time = time();
+        $current_url = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] .$_SERVER['REQUEST_URI'];
+
+        $string1 = "jsapi_ticket=$ticket&noncestr=$nonceStr&timestamp=$time&url=$current_url";
+
+        $url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=$access";
+        $data = [
+            'expire_seconds'=>604800,
+            'action_name'=>'QR_SCENE',
+            'action_info'=>[
+                'scene'=>[
+                    'scene_id'=>'10'
+                ]
+            ],
+        ];
+        $objurl = new Client();
+        $strJson = json_encode($data,JSON_UNESCAPED_UNICODE);
+        $response = $objurl->request('POST',$url,[
+            'body' => $strJson
+        ]);
+        $res_str = $response->getBody();
+        $res_data = json_decode($res_str);
+        //var_dump($res_data);exit;
+        //return $res_str;
+        $ticket = $res_data->ticket;
+
+        $codeurl = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=$ticket";
+
+        $sign = sha1($string1);
+        //var_dump($sign);exit;
+
+        $js_config = [
+            'appId'=>'wx51db63563c238547',
+            'timestamp'=>$time,
+            'nonceStr'=>$nonceStr,
+            'signature'=>$sign,
+        ];
+        $data = [
+            'js_config'=>$js_config,
+            'code_url'=>$codeurl
+        ];
+        return view('weixin.code',$data);
+
+        //return view('weixin.jsdemo',$data);
     }
     /**自定义菜单添加*/
     public function createadd(Request $request){
