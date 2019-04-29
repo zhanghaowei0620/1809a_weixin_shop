@@ -90,17 +90,6 @@ class WeixinController extends Controller
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
     public function xmladd(Request $request)
     {
         $client = new Client();
@@ -175,8 +164,29 @@ class WeixinController extends Controller
             $ticket = $objxml->Ticket;
             $ToUserName = "gh_cf7ceceb3c6e";
             $MsgType = 'news';
+            if($EventKey == 1){
+                $city = "北京";
+            }else if($EventKey == 2){
+                $city = "上海";
+            }else if($EventKey == 3){
+                $city = "深圳";
+            }else if($EventKey == 4){
+                $city = "广州";
+            }else if($EventKey == 5){
+                $city = "成都";
+            }else if($EventKey == 6){
+                $city = "杭州";
+            }else if($EventKey == 7){
+                $city = "武汉";
+            }else if($EventKey == 8){
+                $city = "重庆";
+            }else if($EventKey == 9){
+                $city = "西安";
+            }else{
+                $city = "南京";
+            }
             $where = [
-                'ditch'=>$EventKey,
+                'ditch'=>$city,
                 'openid'=>$openid
             ];
             $data = DB::table('tmp_wx_users')->where($where)->count();
@@ -184,7 +194,7 @@ class WeixinController extends Controller
                 $time = time();
                 $ArticleCount = 1;
                 $Titkle = "扫码";
-                $Description = "欢迎回来";
+                $Description = "欢迎回来 场景值：".$city;
                 $PicUrl = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=$ticket";
                 $Url = "https://1809zhanghaowei.comcto.com/jsdemo";
                 $response_xml = "
@@ -211,7 +221,7 @@ class WeixinController extends Controller
                     'user_sex' => $sex,
                     'headimgurl' => $headimgurl,
                     'openid' => $openid,
-                    'ditch' => $EventKey,
+                    'ditch' => $city,
                     'create_time' => time()
                 ];
 
@@ -223,6 +233,78 @@ class WeixinController extends Controller
 
 
         if($MsgType=='text'){
+            $Content = $objxml->Content;
+            $data = DB::table('goods')->where('goods_name', 'like', '%'.$Content.'%')->first();
+            //var_dump($data);
+            if($data){
+                $goodsHotInfo=DB::table('goods')->where('goods_name', 'like', '%'.$Content.'%')->get(['goods_id','goods_name','goods_img','goods_selfprice'])->toArray();
+                $goods_id = $goodsHotInfo[0]->goods_id;
+                $goods_name = $goodsHotInfo[0]->goods_name;
+                $goods_img = $goodsHotInfo[0]->goods_img;
+                //var_dump($goods_img);
+                $ToUserName = $FromUserName;
+                $FormUserName = "gh_cf7ceceb3c6e";
+                $CreateTime = time();
+                $MsgType = 'news';
+                $ArticleCount = 1;
+                $Titkle = $goods_name;
+                $Description = '最新商品信息';
+                $PicUrl = "https://1809zhanghaowei.comcto.com/goodsimg/$goods_img";
+                $Url = 'https://1809zhanghaowei.comcto.com/goodsList?goods_id='.$goods_id;
+
+                $response_xml = "
+                <xml>
+                     <ToUserName><![CDATA[$ToUserName]]></ToUserName>
+                     <FromUserName><![CDATA[$FormUserName]]></FromUserName>
+                     <CreateTime>$CreateTime</CreateTime>
+                     <MsgType><![CDATA[$MsgType]]></MsgType>
+                     <ArticleCount>$ArticleCount</ArticleCount>
+                     <Articles>
+                          <item>
+                               <Title><![CDATA[$Titkle]]></Title>
+                               <Description><![CDATA[$Description]]></Description>
+                               <PicUrl><![CDATA[$PicUrl]]></PicUrl>
+                               <Url><![CDATA[$Url]]></Url>
+                          </item>
+                     </Articles>
+                </xml>
+                ";
+                echo $response_xml;
+            }else{
+                $goodsHotInfo=DB::table('goods')->orderBy('click_id','desc')->limit(1)->get(['goods_id','goods_name','goods_img','goods_selfprice'])->toArray();
+                $goods_id = $goodsHotInfo[0]->goods_id;
+                $goods_name = $goodsHotInfo[0]->goods_name;
+                $goods_img = $goodsHotInfo[0]->goods_img;
+                $ToUserName = $FromUserName;
+                $FormUserName = "gh_cf7ceceb3c6e";
+                $CreateTime = time();
+                $MsgType = 'news';
+                $ArticleCount = 1;
+                $Titkle = $goods_name;
+                $Description = '最新商品信息';
+                $PicUrl = "https://1809zhanghaowei.comcto.com/goodsimg/$goods_img";
+                $Url = 'https://1809zhanghaowei.comcto.com/goodsList?goods_id='.$goods_id;
+
+                $response_xml = "
+                <xml>
+                     <ToUserName><![CDATA[$ToUserName]]></ToUserName>
+                     <FromUserName><![CDATA[$FormUserName]]></FromUserName>
+                     <CreateTime>$CreateTime</CreateTime>
+                     <MsgType><![CDATA[$MsgType]]></MsgType>
+                     <ArticleCount>$ArticleCount</ArticleCount>
+                     <Articles>
+                          <item>
+                               <Title><![CDATA[$Titkle]]></Title>
+                               <Description><![CDATA[$Description]]></Description>
+                               <PicUrl><![CDATA[$PicUrl]]></PicUrl>
+                               <Url><![CDATA[$Url]]></Url>
+                          </item>
+                     </Articles>
+                </xml>
+                ";
+                echo $response_xml;
+            }
+
             if($Content == '最新商品'){
                 $goodsHotInfo=DB::table('goods')->orderBy('create_time','desc')->limit(5)->get(['goods_id','goods_name','goods_img','goods_selfprice'])->toArray();
                 $goods_id = $goodsHotInfo[0]->goods_id;
@@ -255,7 +337,6 @@ class WeixinController extends Controller
                 ";
                 echo $response_xml;
             }
-
 
         }else if($MsgType=='image') {
             $access = $this->accessToken();
@@ -340,6 +421,7 @@ class WeixinController extends Controller
         $nonceStr = Str::random(10);
         $time = time();
         $current_url = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] .$_SERVER['REQUEST_URI'];
+        //var_dump($_SERVER['REQUEST_SCHEME']);exit;
 
         $string1 = "jsapi_ticket=$ticket&noncestr=$nonceStr&timestamp=$time&url=$current_url";
 
@@ -362,10 +444,9 @@ class WeixinController extends Controller
         $res_data = json_decode($res_str);
         //var_dump($res_data);exit;
         //return $res_str;
-        $ticket = $res_data->ticket;
+        $ticket1 = $res_data->ticket;
 
-        $codeurl = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=$ticket";
-
+        $codeurl = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=$ticket1";
         $sign = sha1($string1);
         //var_dump($sign);exit;
 

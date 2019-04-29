@@ -13,73 +13,93 @@
     <link href="css/fsgallery.css" rel="stylesheet" charset="utf-8">
     <link rel="stylesheet" href="css/swiper.min.css">
     <link rel="stylesheet" href="layui/css/layui.css">
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/qrcode.min.js"></script>
     <style>
         .Countdown-con {padding: 4px 15px 0px;}
     </style>
 </head>
 <body fnav="2" class="g-acc-bg">
-    <div class="page-group">
-        <div id="page-photo-browser" class="page">
-            <!--触屏版内页头部-->
+<div class="page-group">
+    <div id="page-photo-browser" class="page">
+        <!--触屏版内页头部-->
         <div class="m-block-header" id="div-header">
             <strong id="m-title">商品详情</strong>
             <a href="javascript:history.back();" class="m-back-arrow"><i class="m-public-icon"></i></a>
             <a href="/" class="m-index-icon"><i class="m-public-icon"></i></a>
         </div>
 
-                <!-- 焦点图 -->
-                <div class="hotimg-wrapper">
-                    <div class="hotimg-top"></div>
-                    <section id="gallery" class="hotimg">
-                        <ul class="slides" style="width: 600%; transition-duration: 0.4s; transform: translate3d(-828px, 0px, 0px);">
-                            <li style="width: 414px; float: left; display: block;" class="clone">
+        <!-- 焦点图 -->
+        <div class="hotimg-wrapper">
+            <div class="hotimg-top"></div>
+            <section id="gallery" class="hotimg">
+                <ul class="slides" style="width: 600%; transition-duration: 0.4s; transform: translate3d(-828px, 0px, 0px);">
+                    <li style="width: 414px; float: left; display: block;" class="clone">
 
-                                <a href="https://img.1yyg.net/Poster/20170227170302909.png">
-                                   <img src="{{URL::asset('goodsimg/'.$data[0]->goods_img)}}">
-                                </a>
-                            </li>
+                        <a href="https://img.1yyg.net/Poster/20170227170302909.png">
+                            <img src="{{URL::asset('goodsimg/'.$data[0]->goods_img)}}">
+                        </a>
+                    </li>
 
-                        </ul>
-                    </section>
-                </div>
-                <!-- 产品信息 -->
-                <div class="pro_info">
-                    <h2 class="gray6">
-                        <span class="ubva">{{$data[0]->goods_name}}</span>
-                        (第<em id='Period'>10363</em>潮)
-                        </span>
-                    </h2>
-                    <div class="purchase-txt gray9 clearfix">
-                        价值：￥{{$data[0]->goods_selfprice}}
-                    </div>
-                    <div class="clearfix">
+                </ul>
+            </section>
+        </div>
+        <!-- 产品信息 -->
+        <div class="pro_info">
+            <h2 class="gray6">
+                <span class="ubva">{{$data[0]->goods_name}}</span>
+                (第<em id='Period'>10363</em>潮)
+                </span>
+            </h2>
+            <div class="purchase-txt gray9 clearfix">
+                价值：￥{{$data[0]->goods_selfprice}}
+            </div>
+            <div class="clearfix">
 
-                        <div class="gRate">
-                            <div class="Progress-bar">
-                                <p class="u-progress" title="已完成90%">
+                <div class="gRate">
+                    <div class="Progress-bar">
+                        <p class="u-progress" title="已完成90%">
                                     <span class="pgbar" style="width:90%;">
                                         <span class="pging"></span>
                                     </span>
-                                </p>
-                                <ul class="Pro-bar-li">
-                                    <li class="P-bar01"><em>{{$data[0]->click_id}}</em>点击量</li>
-                                    <li class="P-bar02"><em>30</em>总需人次</li>
-                                    <li class="P-bar03"><em>3</em>剩余</li>
-                                </ul>
-                            </div>
-                        </div>
+                        </p>
+                        <ul class="Pro-bar-li">
+                            <li class="P-bar01"><em>27</em>已参与</li>
+                            <li class="P-bar02"><em>30</em>总需人次</li>
+                            <li class="P-bar03"><em>3</em>剩余</li>
+                        </ul>
                     </div>
-                    <!--本商品已结束-->
-
                 </div>
+            </div>
+            <!--本商品已结束-->
 
-                <button class="layui-btn layui-btn-danger" id="asdasdasd" goods_id="{{$data[0]->goods_id}}">加入购物车</button>
-                <!--揭晓倒计时-->
+        </div>
 
-
+        <button class="layui-btn layui-btn-danger" id="asdasdasd" goods_id="{{$data[0]->goods_id}}">加入购物车</button>
+        <!--揭晓倒计时-->
+        <div id="divLotteryTime" class="Countdown-con">
+            <p class="declare">声明：所有商品及活动均与苹果公司（Apple Inc）无关。</p>
+            <div class="state">
+                <em></em>
+                <span>我已阅读《潮购声明》</span>
+            </div>
+            <div class="guide">您还没有参与哦，试试吧！</div>
+        </div>
+        <div class="imgdetail">
+            <div class="ann_btn">
+                <a href="">图文详情<s class="fr"></s></a>
             </div>
         </div>
+        <div id="qrcode"></div>
+
+        <div class="pro_foot">
+            <a href="" class="">第10364潮正在进行中<span class="dotting"></span></a>
+            <a href="" class="shopping">立即参与</a>
+            </a><span class="fr" id='zxczxczxc'><i><b num="1" id="bnm"></b></i></span>
+        </div>
     </div>
+</div>
+</div>
 
 <script src="js/jquery-1.11.2.min.js"></script>
 <script src="http://cdn.bootcss.com/flexslider/2.6.2/jquery.flexslider.min.js"></script>
@@ -87,6 +107,15 @@
 <script src="js/photo.js" charset="utf-8"></script>
 <script src="layui/layui.js"></script>
 <script>
+    var qrcode = new QRCode('qrcode',{
+        text:'{{$current_url}}',
+        width:256,
+        height:256,
+        colorDark : '#000000',
+        colorLight : '#ffffff',
+        correctLevel : QRCode.CorrectLevel.H
+    });
+
     $(function () {
         $('.hotimg').flexslider({
             directionNav: false,   //是否显示左右控制按钮
@@ -137,8 +166,8 @@
         var tabsSwiper = new Swiper('#tabs-container',{
             speed:500,
             onSlideChangeStart: function(){
-              $(".tabs .active").removeClass('active')
-              $(".tabs a").eq(tabsSwiper.activeIndex).addClass('active')
+                $(".tabs .active").removeClass('active')
+                $(".tabs a").eq(tabsSwiper.activeIndex).addClass('active')
             }
         })
         $(".tabs a").on('touchstart mousedown',function(e){
@@ -161,7 +190,7 @@
             $('#asdasdasd').click(function(){
                 var _this=$(this);
                 var goods_id=_this.attr('goods_id');
-                //console.log(goods_id);
+                // console.log(goods_id);
                 $.post(
                     'goodsCart',
                     {goods_id:goods_id},
@@ -169,6 +198,9 @@
                         if(res.code==0){
                             layer.msg(res.font);
                             $('#bnm').html(res.num);
+                        }else if(res.code==1){
+                            layer.msg(res.font,{time:3000})
+                            location.href='login';
                         }else{
                             layer.msg(res.font)
                         }
@@ -183,6 +215,3 @@
         })
     })
 </script>
-
-
-
